@@ -9,22 +9,39 @@ import { PostComponent } from './components/posts/post/post.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from './material.module';
 import { ToolbarComponent } from './shared/components/toolbar/toolbar.component';
+import { ReactiveFormsModule } from '@angular/forms';
+
+/* Firebase */
+import { AngularFirestoreModule } from '@angular/fire/firestore';
+import { AngularFireStorageModule, BUCKET } from '@angular/fire/storage';
+import { AngularFireModule } from '@angular/fire';
+import { AngularFireAuthModule } from '@angular/fire/auth';
+import { environment } from 'src/environments/environment';
+import { ContainerAppComponent } from './components/pages/container-app/container-app.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NewPostComponent,
     PostComponent,
-    ToolbarComponent
+    ToolbarComponent,
+    ContainerAppComponent
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
+    AngularFireModule.initializeApp(environment.firebaseConfig),
+    AngularFireAuthModule,
+    AngularFirestoreModule,
+    AngularFireStorageModule,
     AppRoutingModule,
     NewPostModule,
-    BrowserAnimationsModule,
-    MaterialModule
+    MaterialModule,
+    ReactiveFormsModule
   ],
-  providers: [],
+  providers: [
+    { provide: BUCKET, useValue: 'gs://ngblog-6b034.appspot.com' }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
