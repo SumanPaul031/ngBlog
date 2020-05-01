@@ -9,12 +9,16 @@ import { PostI } from 'src/app/shared/models/post.interface';
 })
 export class PostService {
 
+  private postsCollection: AngularFirestoreCollection<PostI>;
+
   racesCollection: AngularFirestoreCollection<PostI>;
 
-  constructor(private afs: AngularFirestore) { }
+  constructor(private afs: AngularFirestore) { 
+    this.postsCollection = afs.collection<PostI>('posts');
+  }
 
   public getAllPosts(): Observable<PostI[]>{
-    return this.afs.collection('posts').snapshotChanges().pipe(
+    return this.postsCollection.snapshotChanges().pipe(
       map(actions => actions.map(a => {
         const data = a.payload.doc.data() as PostI;
         const id = a.payload.doc.id;
@@ -25,5 +29,13 @@ export class PostService {
 
   public getOnePost(id: PostI): Observable<PostI>{
     return this.afs.doc<PostI>(`posts/${id}`).valueChanges();
+  }
+
+  public deletePostById(post: PostI){
+    return this.postsCollection.doc(post.id).delete();
+  }
+
+  public editPostById(post: PostI){
+    return this.postsCollection.doc(post.id).update(post);
   }
 }
