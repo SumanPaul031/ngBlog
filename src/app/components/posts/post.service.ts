@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, finalize } from 'rxjs/operators';
 import { PostI } from 'src/app/shared/models/post.interface';
+import { FileI } from 'src/app/shared/models/file.interface';
+import { AngularFireStorage } from '@angular/fire/storage';
 
 @Injectable({
   providedIn: 'root'
@@ -10,10 +12,14 @@ import { PostI } from 'src/app/shared/models/post.interface';
 export class PostService {
 
   private postsCollection: AngularFirestoreCollection<PostI>;
+  private filePath: any;
+  private downloadURL: Observable<string>;
 
   racesCollection: AngularFirestoreCollection<PostI>;
 
-  constructor(private afs: AngularFirestore) { 
+  constructor(
+    private afs: AngularFirestore, 
+    private storage: AngularFireStorage) { 
     this.postsCollection = afs.collection<PostI>('posts');
   }
 
@@ -37,5 +43,35 @@ export class PostService {
 
   public editPostById(post: PostI){
     return this.postsCollection.doc(post.id).update(post);
+  }
+
+  public preAddAndUpdatePost(post: PostI, image: FileI): void{
+    this.uploadImage(post, image);
+  }
+
+  private savePost(post: PostI){
+    const postObj = {
+      titlePost: post.titlePost,
+      contentPost: post.contentPost,
+      imagePost: this.downloadURL,
+      fileRef: this.filePath,
+      tagsPost: post.tagsPost
+    };
+
+    this.postsCollection.add(postObj)
+  }
+
+  private uploadImage(post: PostI, image: FileI){
+    this.filePath = `images/${image.name}`;
+    const fileRef = this.storage.ref(this.filePath);
+    const task = this.storage.upload(this.filePath, image);
+    task.snapshotChanges().pipe(
+      finalize(() => {
+        fileRef.getDownloadURL().subscribe(urlImage => {
+          this.downloadURL = urlImage;
+          this.savePost(post);     
+        })
+      })
+    ).subscribe();
   }
 }
