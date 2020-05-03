@@ -17,7 +17,7 @@ export class NewPostComponent implements OnInit {
     contentPost: new FormControl('', Validators.required),
     tagsPost: new FormControl('', Validators.required),
     imagePost: new FormControl('', Validators.required)
-  })
+  });
 
   constructor(private postSvc: PostService) { }
 
